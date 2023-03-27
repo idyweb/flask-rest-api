@@ -1,6 +1,9 @@
+import os
 from flask import Flask
 
 from flask_restx.apidoc import apidoc
+from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
 
 
 ROOT_URL = '/sample_project'
@@ -12,6 +15,11 @@ def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(app_config[config_name])
     app.config["APPLICATION_ROOT"] = ROOT_URL
+    
+    bcrypt = Bcrypt(app)
+    # Setup the Flask-JWT-Extended extension
+    app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+    jwt = JWTManager(app)
 
     # Flask restplus uses apidoc to generate URLs for static files in swagger.
     #

@@ -1,34 +1,32 @@
 #import libraries
 import os
-from flask_restx import Resource, fields,Namespace,Api 
-from flask import request
+import json
+from datetime import datetime, timedelta, timezone
+
+from flask import Flask, jsonify, request
+from flask_restx import Resource, fields, Namespace, Api
+from flask_jwt_extended import (
+    create_access_token,
+    get_jwt_identity,
+    jwt_required,
+    JWTManager
+)
+from pymongo import MongoClient
+import bcrypt
 
 from sample_project.user import ns, auth_namespace
 from sample_project.user.v1.service import get_database
 
-import json
+app = Flask(__name__)
 
-from datetime import datetime, timedelta, timezone
-
-import jwt
-
-from pymongo import MongoClient
-from dotenv import load_dotenv
-
-JWT_SECRET = "secret"
-JWT_ALGORITHM = "HS256"
-JWT_EXP_DELTA_SECONDS = 60
-
-
-
-
-user = ns.model('User', { 
+# define the user model
+user = ns.model('User', {
     'id': fields.Integer,
     'name': fields.String(required=True, min_length=1),
     'email': fields.String(required=True, min_length=5),
 })
 
-#create signup model
+# create signup model
 signup_model = auth_namespace.model(
     "SignUp", {
         "id": fields.Integer(),
@@ -38,7 +36,7 @@ signup_model = auth_namespace.model(
     }
 )
 
-#create login model
+# create login model
 login_model = auth_namespace.model(
     "Login", {
         "email": fields.String(required=True),
@@ -46,82 +44,72 @@ login_model = auth_namespace.model(
     }
 )
 
-def hash_password(password):
-    hashed_password = jwt.encode({'password': password}, JWT_SECRET, algorithm=JWT_ALGORITHM)
-    return hashed_password
-
 @auth_namespace.route("/signup")
 class Signup(Resource):
     @auth_namespace.expect(signup_model)
     def post(self):
-        
         """
         create a new user account
-        """ 
+        """
         data = request.get_json()
 
         # create a new user object
         new_user = {
             "username": data['username'],
             "email": data['email'],
-            "password": hash_password(data['password']),
+            "password": bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
         }
-        
-         # insert the user data into the MongoDB database
+
+        # insert the user data into the MongoDB database
         try:
             collection = get_database()
             users = collection.find_one(
                 {
-                    "$or": [{"username": data["username"]},{"email":data["email"]}]
+                    "$or": [{"username": data["username"]}, {"email": data["email"]}]
                 }
             )
             if not users:
                 collection.insert_one(new_user)
                 return {"message": "User created successfully"}, 201
             else:
-                
-                return {"message": "User already exist"}, 403
-        except:
-            return {"message": "Error creating user"}, 500
-        
+                return {"message": "User already exists"}, 403
+        except Exception as e:
+            return {"message": f"Error creating user: {str(e)}"}, 500
 
+
+    
 @auth_namespace.route("/login")
 class Login(Resource):
     @auth_namespace.expect(login_model)
     def post(self):
         """
-        Logs user in and returns access token
+        Log in an existing user
         """
         data = request.get_json()
         
         email = data['email']
         password = data['password']
-        
-        # get the user with the given email
+
+        # check if user exists in database
         collection = get_database()
         user = collection.find_one(
                 {
-                    "$or": [{email},{password}]
+                    "$or": [{"email":email},{"password":password}]
                 }
             )
-        if user is not None:
-            #check if the password is correct
-            hashed_password = hash_password(password)
-            
-            try:
-                jwt.decode(hashed_password, JWT_SECRET, algorithms=['RS256'])
-            except jwt.exceptions.DecodeError:
-                return {"message": "Invalid password"}, 401
-            
-            # generate access token
-            payload = {
-            "sub": str(user["_id"]),
-            "exp": datetime.utcnow() + timedelta(seconds = JWT_EXP_DELTA_SECONDS)
-        }
-        jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
-        return {"token": jwt_token}
-    
-    
+        if not user:
+            return {"message": "Invalid email or password"}, 401
+
+        # check if password matches
+        if not bcrypt.checkpw(data["password"].encode('utf-8'), user["password"].encode('utf-8')):
+            return {"message": "Invalid email or password"}, 401
+
+        # create an access token for the user
+        access_token = create_access_token(identity=str(user["_id"]))
+
+        # return the access token
+        return {"access_token": access_token}, 200
+
     
 
 @ns.route('/users', methods=['POST'])

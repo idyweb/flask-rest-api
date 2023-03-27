@@ -2,17 +2,23 @@ import os
 from flask_restx import Resource,fields
 from flask import Flask, request
 from pymongo import MongoClient
-from dotenv import load_dotenv
+
 from decouple import config
+from flask_bcrypt import Bcrypt
+
+from dotenv import load_dotenv
 
 
 # Load environment variables from .env file
-load_dotenv()
+
 # connect with MongoDB
 def get_database():
-    #provide mongodb atlas url
-    CONNECTION_STRING = config("CONNECTION_STRING")
-    #create a connection using MongoClient
+    # Load environment variables from .env file
+    
+    load_dotenv()
+
+    # connect with MongoDB
+    CONNECTION_STRING = os.environ.get("CONNECTION_STRING")
     client = MongoClient(CONNECTION_STRING)
     
     #create the database
@@ -20,4 +26,5 @@ def get_database():
     #create collections for user
     collection_name = dbname['users']
     return collection_name
+
 

@@ -1,4 +1,4 @@
-from os 
+import os
 from flask_restx import Resource,fields
 from flask import Flask, request
 from pymongo import MongoClient
@@ -10,7 +10,7 @@ load_dotenv()
 # connect with MongoDB
 def get_database():
     #provide mongodb atlas url
-    CONNECTION_STRING = os.getenv('CONNRCTION_STRING')
+    CONNECTION_STRING = "mongodb+srv://idyvalour:123coragem@books.s1ptkl1.mongodb.net/?retryWrites=true&w=majority"
     #create a connection using MongoClient
     client = MongoClient(CONNECTION_STRING)
     

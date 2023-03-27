@@ -1,0 +1,13 @@
+1. update your requirements.txt files
+
+2. move requirements.txt to the root directory
+
+3. fix the right bcrypt. I am seeing 2 types of bcrypt 
+
+4. user views.py, avoid repetition. Use data['username'] once per endpoint. same for email
+
+5. user views.py. login endpoint. The search should be either email or username. not email or password
+
+6. you can remove the other endpoints that came from the templates that we are not using 
+
+7. remove line 20 user views.py

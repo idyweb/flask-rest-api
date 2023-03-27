@@ -122,6 +122,7 @@ class Login(Resource):
         return {"token": jwt_token}
     
     
+    
 
 @ns.route('/users', methods=['POST'])
 class User(Resource):

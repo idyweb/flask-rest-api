@@ -12,6 +12,7 @@ ROOT_URL = '/sample_project'
 
 
 def create_app(config_name):
+    
     from sample_project.config import app_config
 
     app = Flask(__name__)

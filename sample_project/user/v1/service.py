@@ -18,7 +18,7 @@ def get_database():
     load_dotenv()
 
     # connect with MongoDB
-    CONNECTION_STRING = os.environ.get("CONNECTION_STRING")
+    CONNECTION_STRING = config("CONNECTION_STRING")
     client = MongoClient(CONNECTION_STRING)
     
     #create the database

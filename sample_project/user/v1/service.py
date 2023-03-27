@@ -1,12 +1,9 @@
-import os
 from flask_restx import Resource,fields
 from flask import Flask, request
 from pymongo import MongoClient
 
 from decouple import config
-from flask_bcrypt import Bcrypt
 
-from dotenv import load_dotenv
 
 
 # Load environment variables from .env file

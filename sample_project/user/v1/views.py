@@ -1,30 +1,12 @@
 #import libraries
-import os
-import json
-from datetime import datetime, timedelta, timezone
-
-from flask import Flask, jsonify, request
-from flask_restx import Resource, fields, Namespace, Api
-from flask_jwt_extended import (
-    create_access_token,
-    get_jwt_identity,
-    jwt_required,
-    JWTManager
-)
-from pymongo import MongoClient
 import bcrypt
+from flask import Flask, jsonify, request
+from flask_jwt_extended import (JWTManager, create_access_token, get_jwt_identity, jwt_required)
+from flask_restx import Api, Namespace, Resource, fields
+from pymongo import MongoClient
 
-from sample_project.user import ns, auth_namespace
+from sample_project.user import auth_namespace, ns
 from sample_project.user.v1.service import get_database
-
-app = Flask(__name__)
-
-# define the user model
-user = ns.model('User', {
-    'id': fields.Integer,
-    'name': fields.String(required=True, min_length=1),
-    'email': fields.String(required=True, min_length=5),
-})
 
 # create signup model
 signup_model = auth_namespace.model(
@@ -39,6 +21,7 @@ signup_model = auth_namespace.model(
 # create login model
 login_model = auth_namespace.model(
     "Login", {
+        "username": fields.String(required=True),
         "email": fields.String(required=True),
         "password": fields.String(required=True),
     }
@@ -59,13 +42,15 @@ class Signup(Resource):
             "email": data['email'],
             "password": bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
         }
+        email = data['email']
+        username = data['username']
 
         # insert the user data into the MongoDB database
         try:
             collection = get_database()
             users = collection.find_one(
                 {
-                    "$or": [{"username": data["username"]}, {"email": data["email"]}]
+                    "$or": [{"username": username}, {"email": email}]
                 }
             )
             if not users:
@@ -87,50 +72,29 @@ class Login(Resource):
         """
         data = request.get_json()
         
+        username = data['username']
         email = data['email']
-        password = data['password']
+    
 
         # check if user exists in database
         collection = get_database()
         user = collection.find_one(
                 {
-                    "$or": [{"email":email},{"password":password}]
+                    "$or": [{"email":email},{"username":username}]
                 }
             )
         if not user:
             return {"message": "Invalid email or password"}, 401
-
+        
+        try:
         # check if password matches
-        if not bcrypt.checkpw(data["password"].encode('utf-8'), user["password"].encode('utf-8')):
-            return {"message": "Invalid email or password"}, 401
+            if not bcrypt.checkpw(data["password"].encode('utf-8'), user["password"].encode('utf-8')):
+                return {"message": "Invalid email or password"}, 401
+        except Exception as e:
+            return {"message": f"Error checking password: {str(e)}"}, 500
 
         # create an access token for the user
         access_token = create_access_token(identity=str(user["_id"]))
 
         # return the access token
         return {"access_token": access_token}, 200
-
-    
-
-@ns.route('/users', methods=['POST'])
-class User(Resource):
-
-    @ns.expect(user, validate=True)
-    @ns.marshal_with(user, envelope='user')
-    def post(self):
-        data = request.json
-        data['id'] = 1
-        return data, 201
-
-
-@ns.route('/users/<string:user_id>', methods=['GET'])
-class UserDetail(Resource):
-    @ns.marshal_with(user, envelope='user')
-    def get(self, user_id):
-        if user_id == '1':
-            return {
-                'id': 1,
-                'name': 'John Doe',
-                'email': 'john.doe@example.com'
-            }
-        return {}, 404

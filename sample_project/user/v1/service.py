@@ -14,8 +14,6 @@ from dotenv import load_dotenv
 # connect with MongoDB
 def get_database():
     # Load environment variables from .env file
-    
-    load_dotenv()
 
     # connect with MongoDB
     CONNECTION_STRING = config("CONNECTION_STRING")

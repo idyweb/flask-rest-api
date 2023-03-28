@@ -5,7 +5,6 @@ from flask_restx.apidoc import apidoc
 
 from flask_jwt_extended import JWTManager
 
-from flask_bcrypt import Bcrypt
 
 from decouple import config
 
@@ -14,13 +13,13 @@ ROOT_URL = '/sample_project'
 
 
 def create_app(config_name):
+    
     from sample_project.config import app_config
 
     app = Flask(__name__)
     app.config.from_object(app_config[config_name])
     app.config["APPLICATION_ROOT"] = ROOT_URL
     
-    bcrypt = Bcrypt(app)
     # Setup the Flask-JWT-Extended extension
     app.config["JWT_SECRET_KEY"] = config("JWT_SECRET_KEY")
     jwt = JWTManager(app)

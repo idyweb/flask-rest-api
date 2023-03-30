@@ -4,7 +4,7 @@ from flask_restx import Api
 from sample_project.user import ns as ns_user
 from sample_project.person import ns as ns_person
 from sample_project.user import auth_namespace as ns_auth
-from sample_project.books import ns as ns_book
+from sample_project.books import book_namespace as ns_book
 
 
 blueprint = Blueprint('api_1_0', __name__)

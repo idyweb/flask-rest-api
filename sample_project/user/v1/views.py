@@ -47,7 +47,7 @@ class Signup(Resource):
 
         # insert the user data into the MongoDB database
         try:
-            users_collection, books_collection = get_database()
+            users_collection = get_database("users")
             user = users_collection.find_one(
                 {
                     "$or": [{"username": username}, {"email": email}]
@@ -77,7 +77,7 @@ class Login(Resource):
     
 
         # check if user exists in database
-        users_collection, books_collection = get_database()
+        users_collection = get_database("users")
         user = users_collection.find_one(
                 {
                     "$or": [{"email":email},{"username":username}]

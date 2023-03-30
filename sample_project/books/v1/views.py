@@ -11,7 +11,6 @@ book = book_namespace.model('Book', {
 })
 
 @book_namespace.route("/add")
-@login_required
 class Book(Resource):
     @book_namespace.expect(book)
     
@@ -27,7 +26,7 @@ class Book(Resource):
             
             #add book into database
             try:
-                books_collection = get_database()
+                books_collection = get_database('books')
                 book = books_collection.find_one({"title":title})
                 
                 if not book:

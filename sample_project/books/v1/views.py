@@ -10,6 +10,7 @@ book = book_namespace.model('Book', {
     'author': fields.String(required=True, min_length=5),
 })
 
+
 @book_namespace.route("/add")
 @login_required
 class Book(Resource):

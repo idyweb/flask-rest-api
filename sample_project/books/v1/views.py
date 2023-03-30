@@ -1,8 +1,9 @@
 from flask import request
 from flask_restx import Resource, fields
 from flask_login import login_required, current_user
+from flask_jwt_extended import (JWTManager, create_access_token, get_jwt_identity, jwt_required)
 from sample_project.books import book_namespace
-from sample_project.user.v1.service import get_database
+from service import get_database
 
 book = book_namespace.model('Book', {
     'id': fields.Integer,
@@ -12,18 +13,18 @@ book = book_namespace.model('Book', {
 
 @book_namespace.route("/add")
 class Book(Resource):
+    @jwt_required()
     @book_namespace.expect(book)
-    
     def post(self):
             data = request.get_json()
+            title = data['title']
+            author = data['author']
             
             #add a new book object
             new_book = {
-                "title": data['title'],
-                "author" :data['author']
+                "title": title,
+                "author" : author
             }
-            title = data['title']
-            
             #add book into database
             try:
                 books_collection = get_database('books')

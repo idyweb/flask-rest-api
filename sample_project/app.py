@@ -4,7 +4,6 @@ from flask import Flask
 from flask_restx.apidoc import apidoc
 from flask_jwt_extended import JWTManager
 
-
 from decouple import config
 
 
@@ -22,6 +21,7 @@ def create_app(config_name):
     # Setup the Flask-JWT-Extended extension
     app.config["JWT_SECRET_KEY"] = config("JWT_SECRET_KEY")
     jwt = JWTManager(app)
+    
 
     # Flask restplus uses apidoc to generate URLs for static files in swagger.
     #

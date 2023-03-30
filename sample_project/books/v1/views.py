@@ -1,8 +1,10 @@
-from flask import request
+from flask import request, jsonify
 from flask_restx import Resource, fields
-from flask_login import login_required, current_user
+from flask_jwt_extended import jwt_required
+
+
 from sample_project.books import book_namespace
-from sample_project.user.v1.service import get_database
+from service import get_database, get_books
 
 book = book_namespace.model('Book', {
     'id': fields.Integer,
@@ -10,10 +12,29 @@ book = book_namespace.model('Book', {
     'author': fields.String(required=True, min_length=5),
 })
 
-
-@book_namespace.route("/add")
-@login_required
+@book_namespace.route("/")
+class BookList(Resource):
+    @jwt_required()
+    def get(self):
+        books = get_books()
+        return {"books": books}, 200
+    
+@book_namespace.route("/<string:title>")
 class Book(Resource):
+    @jwt_required()
+    def get(self, title):
+        books_collection = get_database('books')
+        book = books_collection.find_one({"title": title})
+        if book:
+            book['_id'] = str(book['_id'])
+            return {"book": book}, 200
+        else:
+            return {"message": "Book not found"}, 404
+    
+    
+@book_namespace.route("/add")
+class AddBook(Resource):
+    @jwt_required()
     @book_namespace.expect(book)
     
     def post(self):
@@ -28,7 +49,7 @@ class Book(Resource):
             
             #add book into database
             try:
-                books_collection = get_database()
+                books_collection = get_database('books')
                 book = books_collection.find_one({"title":title})
                 
                 if not book:

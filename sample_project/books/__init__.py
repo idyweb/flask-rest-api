@@ -1,6 +1,6 @@
 from flask_restx import Namespace
 
-ns = Namespace('Book', path='/')
+#ns = Namespace('Book', path='/')
 book_namespace = Namespace('Book', path='/')
 
 

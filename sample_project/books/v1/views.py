@@ -2,7 +2,6 @@ from flask import request, jsonify
 from flask_restx import Resource, fields
 from flask_jwt_extended import jwt_required
 
-
 from sample_project.books import book_namespace
 from service import get_database, get_books
 
@@ -36,17 +35,16 @@ class Book(Resource):
 class AddBook(Resource):
     @jwt_required()
     @book_namespace.expect(book)
-    
     def post(self):
             data = request.get_json()
+            title = data['title']
+            author = data['author']
             
             #add a new book object
             new_book = {
-                "title": data['title'],
-                "author" :data['author']
+                "title": title,
+                "author" : author
             }
-            title = data['title']
-            
             #add book into database
             try:
                 books_collection = get_database('books')

@@ -2,6 +2,7 @@ import os
 from flask import Flask
 
 from flask_restx.apidoc import apidoc
+
 from flask_jwt_extended import JWTManager
 
 from decouple import config

@@ -17,9 +17,11 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
     
     #create the database
-    dbname = client['user_list']
+    dbname = client['bookstore']
     #create collections for user
-    collection_name = dbname['users']
-    return collection_name
+    users_collection = dbname['users']
+    books_collection = dbname['books']
+    return users_collection, books_collection
 
 
+#create collections for books

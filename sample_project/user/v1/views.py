@@ -47,14 +47,14 @@ class Signup(Resource):
 
         # insert the user data into the MongoDB database
         try:
-            collection = get_database()
-            users = collection.find_one(
+            users_collection, books_collection = get_database()
+            user = users_collection.find_one(
                 {
                     "$or": [{"username": username}, {"email": email}]
                 }
             )
-            if not users:
-                collection.insert_one(new_user)
+            if not user:
+                users_collection.insert_one(new_user)
                 return {"message": "User created successfully"}, 201
             else:
                 return {"message": "User already exists"}, 403
@@ -77,8 +77,8 @@ class Login(Resource):
     
 
         # check if user exists in database
-        collection = get_database()
-        user = collection.find_one(
+        users_collection, books_collection = get_database()
+        user = users_collection.find_one(
                 {
                     "$or": [{"email":email},{"username":username}]
                 }

@@ -4,6 +4,7 @@ from flask import request
 from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
 from flask_restx import Resource, fields
 
+
 from sample_project.user import auth_namespace
 from service import get_database
 
@@ -99,4 +100,3 @@ class Login(Resource):
 
         # return the access token
         return {"access_token": access_token}, 200
-

@@ -1,11 +1,11 @@
 #import libraries
 import bcrypt
-from flask import Flask, jsonify, request
-from flask_jwt_extended import (JWTManager, create_access_token, get_jwt_identity, jwt_required)
-from flask_restx import Api, Namespace, Resource, fields
-from pymongo import MongoClient
+from flask import request
+from flask_jwt_extended import (create_access_token, get_jwt_identity, jwt_required)
+from flask_restx import Resource, fields
 
-from sample_project.user import auth_namespace, ns
+
+from sample_project.user import auth_namespace
 from service import get_database
 
 # create signup model
@@ -35,19 +35,21 @@ class Signup(Resource):
         create a new user account
         """
         data = request.get_json()
-
-        # create a new user object
-        new_user = {
-            "username": data['username'],
-            "email": data['email'],
-            "password": bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
-        }
+        
         email = data['email']
         username = data['username']
 
+        # create a new user object
+        new_user = {
+            "username": username,
+            "email": email,
+            "password": bcrypt.hashpw(data['password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8'),
+        }
+        
+
         # insert the user data into the MongoDB database
         try:
-            users_collection = get_database("users")
+            users_collection = get_database('users')
             user = users_collection.find_one(
                 {
                     "$or": [{"username": username}, {"email": email}]
@@ -77,7 +79,7 @@ class Login(Resource):
     
 
         # check if user exists in database
-        users_collection = get_database("users")
+        users_collection = get_database('users')
         user = users_collection.find_one(
                 {
                     "$or": [{"email":email},{"username":username}]
@@ -98,13 +100,3 @@ class Login(Resource):
 
         # return the access token
         return {"access_token": access_token}, 200
-    
-    
-@auth_namespace.route('/protected', methods=["GET"])
-class Protected(Resource):
-    @jwt_required()
-    def protected():
-    #access identity of the current user with get_jwt_identity
-        current_user = get_jwt_identity()
-        return {"logged_in" : current_user}
-    

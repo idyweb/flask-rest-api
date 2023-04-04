@@ -6,7 +6,7 @@ from flask_restx import Api, Namespace, Resource, fields
 from pymongo import MongoClient
 
 from sample_project.user import auth_namespace, ns
-from sample_project.user.v1.service import get_database
+from service import get_database
 
 # create signup model
 signup_model = auth_namespace.model(
@@ -47,14 +47,14 @@ class Signup(Resource):
 
         # insert the user data into the MongoDB database
         try:
-            collection = get_database()
-            users = collection.find_one(
+            users_collection = get_database("users")
+            user = users_collection.find_one(
                 {
                     "$or": [{"username": username}, {"email": email}]
                 }
             )
-            if not users:
-                collection.insert_one(new_user)
+            if not user:
+                users_collection.insert_one(new_user)
                 return {"message": "User created successfully"}, 201
             else:
                 return {"message": "User already exists"}, 403
@@ -77,8 +77,8 @@ class Login(Resource):
     
 
         # check if user exists in database
-        collection = get_database()
-        user = collection.find_one(
+        users_collection = get_database("users")
+        user = users_collection.find_one(
                 {
                     "$or": [{"email":email},{"username":username}]
                 }
@@ -98,3 +98,13 @@ class Login(Resource):
 
         # return the access token
         return {"access_token": access_token}, 200
+    
+    
+@auth_namespace.route('/protected', methods=["GET"])
+class Protected(Resource):
+    @jwt_required()
+    def protected():
+    #access identity of the current user with get_jwt_identity
+        current_user = get_jwt_identity()
+        return {"logged_in" : current_user}
+    

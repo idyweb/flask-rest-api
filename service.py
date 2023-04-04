@@ -9,7 +9,7 @@ from decouple import config
 # Load environment variables from .env file
 
 # connect with MongoDB
-def get_database():
+def get_database(collection_name):
     # Load environment variables from .env file
 
     # connect with MongoDB
@@ -17,9 +17,10 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
     
     #create the database
-    dbname = client['user_list']
+    dbname = client['bookstore']
     #create collections for user
-    collection_name = dbname['users']
-    return collection_name
+    collection = dbname[collection_name]
+    return collection
 
 
+#create collections for books

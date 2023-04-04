@@ -61,3 +61,30 @@ class AddBook(Resource):
                 return {"message": f"Error adding book: {str(e)}"}, 500
         
 
+@book_namespace.route("/<string:title>")
+class UpdateBook(Resource):
+    @jwt_required()
+    def put(self, title):
+        books_collection = get_database('books')
+        book = books_collection.find_one({"title": title})
+        if book:
+            data = request.get_json()
+            book['title'] = data['title'] if 'title' in data else book['title']
+            book['author'] = data['author'] if 'author' in data else book['author']
+            books_collection.replace_one({"title":title}, book)
+            
+            return {"message": " Book updated successfully"}, 200
+        else:
+            return {"message": "Book not found"}, 404
+        
+@book_namespace.route("/<string:title>")
+class DeleteBook(Resource):
+    @jwt_required()
+    def delete(self, title):
+        books_collection = get_database('books')
+        result = books_collection.delete_one({"title":title})
+        if result.deleted_count > 0:
+            return {"message": "Book deleted successfully"}, 200
+        else:
+            return {"message": "Book not found"}, 404
+                

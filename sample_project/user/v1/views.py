@@ -100,10 +100,3 @@ class Login(Resource):
         # return the access token
         return {"access_token": access_token}, 200
 
-@auth_namespace.route('/protected', methods=["GET"])
-class Protected(Resource):
-    @jwt_required()
-    def get(self):
-        #access identity of the current user with get_jwt_identity
-        current_user = get_jwt_identity()
-        return {"logged_in" : current_user}
